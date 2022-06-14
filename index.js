@@ -1,13 +1,11 @@
 /**
  * 二、模拟useState
  * 
- * 1.hooks通常是在函数组件里面使用，所以我们声明一个函数组件。
- * 2.告诉React怎样渲染这个函数组件
- * 3.把_val变量提到React模块顶层，使state不必是个函数
+ * 处理多个state的情况，当前代码处理多个state会发生问题，因为现在全局变量不是数组，所以变量的值会被覆盖。
  * 
  */
 
-const React = (function() {
+ const React = (function() {
     let _val
     function useState(initialVal) {
         let state = _val || initialVal
@@ -20,21 +18,24 @@ const React = (function() {
         return C
     }
     return { useState, render }
-})()
-
-const Component = function() {
+  })()
+  
+  const Component = function() {
     const [count, setCount] = React.useState(1)
+    const [text, setText] = React.useState('Apple')
     return {
-        render: () => console.log(count),
-        click: () => setCount(count + 1)
+        render: () => console.log({count, text}),
+        click: () => setCount(count + 1),
+        type: () => setText('Pear')
     }
-}
-
-var App = React.render(Component) // 1
-App.click() 
-
-var App = React.render(Component) // 2
-App.click()
-
-var App = React.render(Component) // 3
-App.click()
+  }
+  
+  var App = React.render(Component) // {count: 1, text: "Apple"}
+  App.click() 
+  var App = React.render(Component) // {count: 2, text: 2}
+  App.type() 
+  var App = React.render(Component) // {count: "Pear", text: "Pear"}
+  
+  
+  
+  
