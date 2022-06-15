@@ -1,9 +1,9 @@
 /**
- * 二、模拟useState
+ * 二、模拟useEffect
  *
- * 1.为了缓存多个state，引入hooks数组和索引idx。
- * 2.render函数要把idx重新赋值为0，不然idx会一直增加，导致找不到对应的值。
- * 3.useState函数要引入一个局部变量id来保存idx的值，因为setState会被单独调用，要保证setState被调用的时候id是准确的。
+ * 1.需要把上一次的依赖项数组缓存一下，通过hooks[idx] = depsArray，然后访问之前的缓存就是oldDeps = hooks[idx]（直接取hooks[idx]）
+ * 2.useEffect需要根据依赖项是否发生变化判断执不执行回调，所以需要一个变量hasChange做标记，默认是true，
+ * 然后每次对比新旧依赖数组里面的值，如有变化再执行回调。
  * 
  */
 
@@ -17,18 +17,31 @@
       idx++;
       return [state, setState];
     }
+    function useEffect(callback, depsArray) {
+        const oldDeps = hooks[idx]
+        let hasChange = true
+        if(oldDeps) {
+            hasChange = depsArray.some((dep, i) => !Object.is(dep, oldDeps[i]))
+        }
+        if(hasChange) callback()
+        hooks[idx] = depsArray
+        idx++
+    }
     function render(Component) {
       idx = 0;
       let C = Component();
       C.render();
       return C;
     }
-    return { useState, render };
+    return { useState, render, useEffect };
   })();
   
   const Component = function () {
     const [count, setCount] = React.useState(1);
     const [text, setText] = React.useState("Apple");
+    React.useEffect(() => {
+        console.log('useEffect')
+    }, [count])
     return {
       render: () => console.log({ count, text }),
       click: () => setCount(count + 1),
